@@ -5,10 +5,19 @@ var net = require('net');
 ***************************************/
 var count = 0;
 var users = {};
-var nickname;
+
+function broadcast (msg, exceptMyself) {
+    for ( var i in users ) {
+        if ( !exceptMyself || i != nickname ) {
+            users[i].write(msg);
+        }
+    }
+};
 
 var server = net.createServer(function (conn) {
-conn.setEncoding('utf8');
+    conn.setEncoding('utf8');
+    //Current connection nickname
+    var nickname;
 
     conn.write(
         '\n > welcome to \033[92mnode-chat\033[39m!' +
@@ -29,14 +38,14 @@ conn.setEncoding('utf8');
                 users[nickname] = conn;
 
                 for ( var i in users ) {
-                    users[i].write('\033[90m > ' + nickname + ' joined the room\033[39m\n');
+                    broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n');
                 }
 
             }
         } else {
             for ( var i in users ) {
                 if ( i != nickname ) {
-                    users[i].write('\033[96m > ' + nickname + ':\033[39m ' + data + '\n');
+                    broadcast('\033[96m > ' + nickname + ':\033[39m ' + data + '\n', true);
                 }
             }
         }
@@ -47,6 +56,7 @@ conn.setEncoding('utf8');
     conn.on('close', function () {
         count--;
         delete users[nickname];
+        broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n');
     });
 
     console.log('\033[90m    new connection!\033[39m');
