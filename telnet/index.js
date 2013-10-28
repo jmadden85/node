@@ -8,7 +8,7 @@ var users = {};
 
 function broadcast (msg, exceptMyself) {
     for ( var i in users ) {
-        if ( !exceptMyself || i != nickname ) {
+        if ( exceptMyself !== i ) {
             users[i].write(msg);
         }
     }
@@ -36,21 +36,17 @@ var server = net.createServer(function (conn) {
             } else {
                 nickname = data;
                 users[nickname] = conn;
-
-                for ( var i in users ) {
-                    broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n');
-                }
+                broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', nickname);
 
             }
         } else {
             for ( var i in users ) {
-                if ( i != nickname ) {
+                if ( i !== nickname ) {
                     broadcast('\033[96m > ' + nickname + ':\033[39m ' + data + '\n', true);
                 }
             }
         }
 
-        console.log(data);
     });
 
     conn.on('close', function () {
